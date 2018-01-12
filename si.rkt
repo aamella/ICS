@@ -6,8 +6,18 @@
 (define TURRET (above (rectangle 6 2 "solid" "black")
                       (rectangle 50 20 "solid" "green")))
 (define ENEMY (ellipse 50 20 "solid" "red"))
-(define BOMB (circle 5 "solid" "red"))
-(define START (make-si 100 10 25 -100 -100 -100 -100 1))
+(define BOMB (circle 5 "solid" "red")
+(define START (make-si 0 10 25 -100 1000 1000 10 1))
+(define (limit x)
+  (max (min x 500)
+       0))
+(define (game-over si)
+  (cond [(bullet-hit-enemy? si)
+         (text "BULLET HIT ENEMY" 100 "green")]
+        [(enemy-hit-turret? si)
+         (text "ENEMY HIT TURRET" 100 "red")]
+        [(bomb-hit-turret? si)
+         (text "BOMB HIT TURRET" 100 "red")]))
 ;LOGIC
 (define (bullet-hit-enemy? si)
   (and (< (+ -25 (si-ex si))
@@ -17,7 +27,7 @@
        (>= (si-ey si)
            (+ 15 (si-buly si)))))
 (define (enemy-hit-turret? si)
-  (and (< 15 (si-ey si))
+  (and (< 480 (si-ey si))
        (or (< (+ -25 (si-ey si))
               (+ 25 (si-tx si)))
            (< (+ 25 (si-ey si))
@@ -27,7 +37,7 @@
           (si-bomx si))
        (> (+ 25 (si-tx si))
           (si-bomx si))
-       (>= 10 (si-bomy si))))
+       (>= 490 (si-bomy si))))
 (define (bullet-on-screen? si)
   (< -25 (si-buly si)))
 (define (game-over? si)
@@ -35,9 +45,11 @@
       (bomb-hit-turret? si)
       (bullet-hit-enemy? si)))
 (define (enemy-left? si)
-  (> 50 (si-ex si)))
+  (> 100 (si-ex si)))
 (define (enemy-right? si)
-  (< 450 (si-ex si)))
+  (< 400 (si-ex si)))
+(define (bomb-on-screen? si)
+  (< 500 (si-bomy si)))
 ;DRAW
 (define (draw si)
   (place-image BOMB (si-bomx si)
@@ -57,14 +69,14 @@
            (si-bulx si)
            (si-buly si)
            (si-bomx si)
-           (+ 50 (si-bomy si))
+           (+ 20 (si-bomy si))
            (si-edir si)))
 (define (bullet-tick si)
   (make-si (si-ex si)
            (si-ey si)
            (si-tx si)
            (si-bulx si)
-           (+ -10 (si-buly si))
+           (+ -30 (si-buly si))
            (si-bomx si)
            (si-bomy si)
            (si-edir si)))
@@ -80,23 +92,50 @@
            (si-tx si)
            (si-bulx si)
            (si-buly si)
-           (cond [(< 500 (si-bomy si))
-                  (si-bomy
-                   (si-ey si))]
-                 [else (si-bomy si)])
-           (cond [(< 500 (si-bomy si))
-                  (si-bomx
-                   (si-ex si))]
+           (cond [(bomb-on-screen? si) (si-ex si)]
                  [else (si-bomx si)])
+           (cond [(bomb-on-screen? si) (si-ey si)]
+                 [else (si-bomy si)])
            (cond [(enemy-left? si) 1]
                  [(enemy-right? si) -1]
                  [else (si-edir si)])))
 (define (tick si)
   (enemy-tick (bullet-tick (bomb-tick si))))
-
+;KEY
+(define (key si key)
+  (cond [(string=? key "left")
+         (make-si (si-ex si)
+                  (si-ey si)
+                  (limit (+ -10 (si-tx si)))
+                  (si-bulx si)
+                  (si-buly si)
+                  (si-bomx si)
+                  (si-bomy si)
+                  (si-edir si))]
+        [(string=? key "right")
+         (make-si (si-ex si)
+                  (si-ey si)
+                  (limit (+ 10 (si-tx si)))
+                  (si-bulx si)
+                  (si-buly si)
+                  (si-bomx si)
+                  (si-bomy si)
+                  (si-edir si))]
+        [(and (string=? key "up")
+              (not (bullet-on-screen? si)))
+         (make-si (si-ex si)
+                  (si-ey si)
+                  (si-tx si)
+                  (si-tx si)
+                  500
+                  (si-bomx si)
+                  (si-bomy si)
+                  (si-edir si))]
+        [else si])) 
 ;BIG-BANG
 (big-bang START
           (name "Space Invaders")
           (on-draw draw)
-          (on-tick tick .5))
-  
+          (on-tick tick .25)
+          (on-key key)
+          (stop-when game-over? game-over))
