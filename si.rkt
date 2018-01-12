@@ -6,7 +6,7 @@
 (define TURRET (above (rectangle 6 2 "solid" "black")
                       (rectangle 50 20 "solid" "green")))
 (define ENEMY (ellipse 50 20 "solid" "red"))
-(define BOMB (circle 5 "solid" "red")
+(define BOMB (circle 5 "solid" "red"))
 (define START (make-si 0 10 25 -100 1000 1000 10 1))
 (define (limit x)
   (max (min x 500)
