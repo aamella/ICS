@@ -20,12 +20,14 @@
          (text "BOMB HIT TURRET" 100 "red")]))
 ;LOGIC
 (define (bullet-hit-enemy? si)
-  (and (< (+ -25 (si-ex si))
-          (si-bulx si))
-       (> (+ 25 (si-ex si))
-          (si-bulx si))
-       (>= (si-ey si)
-           (+ 15 (si-buly si)))))
+  (and (> (si-bulx si)
+          (+ -25 (si-ex si)))
+       (< (si-bulx si)
+          (+ 25 (si-ex si)))
+       (< (si-buly si)
+          (+ 10 (si-ey si)))
+       (> (si-buly si)
+          (+ -10 (si-ey si)))))
 (define (enemy-hit-turret? si)
   (and (< 480 (si-ey si))
        (or (< (+ -25 (si-ey si))
@@ -37,7 +39,7 @@
           (si-bomx si))
        (> (+ 25 (si-tx si))
           (si-bomx si))
-       (>= 490 (si-bomy si))))
+       (<= 490 (si-bomy si))))
 (define (bullet-on-screen? si)
   (< -25 (si-buly si)))
 (define (game-over? si)
@@ -69,7 +71,7 @@
            (si-bulx si)
            (si-buly si)
            (si-bomx si)
-           (+ 20 (si-bomy si))
+           (+ 10 (si-bomy si))
            (si-edir si)))
 (define (bullet-tick si)
   (make-si (si-ex si)
@@ -82,9 +84,9 @@
            (si-edir si)))
 (define (enemy-tick si)
   (make-si (cond [(= (si-edir si) 1)
-                  (+ 50 (si-ex si))]
+                  (+ 25 (si-ex si))]
                  [(= (si-edir si) -1)
-                  (+ -50 (si-ex si))]
+                  (+ -25 (si-ex si))]
                  [else (error "What the actual fuck how did you break this")])
            (cond [(or (enemy-left? si) (enemy-right? si))
                   (+ (si-ey si) 10)]
@@ -136,6 +138,6 @@
 (big-bang START
           (name "Space Invaders")
           (on-draw draw)
-          (on-tick tick .25)
+          (on-tick tick .15)
           (on-key key)
           (stop-when game-over? game-over))
