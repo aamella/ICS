@@ -1,5 +1,13 @@
 (require picturing-programs)
 (define-struct si (ex ey tx bulx buly bomx bomy edir))
+;ex   - enemy X
+;ey   - enemy Y
+;tx   - turret X
+;bulx - bullet x
+;buly - bullet Y
+;bomx - bomb X
+;bomy - bomb Y
+;edir - enemy direction (+/- 1)
 ;GAME ELEMENTS
 (define BACKGROUND (empty-scene 500 500))
 (define BULLET (rectangle 2 30 "solid" "blue"))
@@ -7,7 +15,7 @@
                       (rectangle 50 20 "solid" "green")))
 (define ENEMY (ellipse 50 20 "solid" "red"))
 (define BOMB (circle 5 "solid" "red"))
-(define START (make-si 0 10 25 -100 1000 1000 10 1))
+(define START (make-si 15 -10 25 1000 1000 1000 1000 1))
 (define (limit x)
   (max (min x 500)
        0))
@@ -21,15 +29,16 @@
 ;LOGIC
 (define (bullet-hit-enemy? si)
   (and (> (si-bulx si)
-          (+ -25 (si-ex si)))
+          (+ -25 (si-ex si))) ;bullet X greater than 25 left from enemy X
        (< (si-bulx si)
-          (+ 25 (si-ex si)))
+          (+ 25 (si-ex si))) ;bullet X less than 25 right from enemy X
        (< (si-buly si)
-          (+ 10 (si-ey si)))
+          (+ 30 (si-ey si))) ;bullet Y less than 10 below enemy Y
        (> (si-buly si)
-          (+ -10 (si-ey si)))))
+          (+ -30 (si-ey si))))) ;bullet Y greater than than 10 above enemy Y
 (define (enemy-hit-turret? si)
-  (and (< 480 (si-ey si))
+  (and (> (si-ey si)
+          480)
        (or (< (+ -25 (si-ey si))
               (+ 25 (si-tx si)))
            (< (+ 25 (si-ey si))
@@ -47,9 +56,9 @@
       (bomb-hit-turret? si)
       (bullet-hit-enemy? si)))
 (define (enemy-left? si)
-  (> 100 (si-ex si)))
+  (> 50 (si-ex si)))
 (define (enemy-right? si)
-  (< 400 (si-ex si)))
+  (< 450 (si-ex si)))
 (define (bomb-on-screen? si)
   (< 500 (si-bomy si)))
 ;DRAW
